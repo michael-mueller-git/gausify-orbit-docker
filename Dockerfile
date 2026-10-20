@@ -9,14 +9,22 @@
 # ---------------------------------------------------------------- brush wasm --
 FROM rust:1.99-slim AS brush
 
+# Upstream gausify-orbit main as of 2026-10-20. The app sources, the
+# build-brush-web.mjs script and the web/brush/*.patch files all live there;
+# this wrapper repo only ships the Dockerfile, nginx.conf, the selfhost patch
+# and model-urls.txt. Pin the rev: patches/model checksums are verified against it.
+ARG GAUSIFY_REV=f019927d640b0f39c3687ccdee835ed459418538
+
 # node is only needed to run scripts/build-brush-web.mjs (Node stdlib only).
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates nodejs \
  && rm -rf /var/lib/apt/lists/* \
  && cargo install wasm-pack --locked
 
+RUN git clone https://github.com/obraia/gausify-orbit.git /src \
+ && git -C /src checkout -q "$GAUSIFY_REV"
+
 WORKDIR /src
-COPY . .
 
 # Clones Brush at the pinned rev, applies web/brush/*.patch and outputs web/pkg/
 RUN node scripts/build-brush-web.mjs
@@ -25,8 +33,8 @@ RUN node scripts/build-brush-web.mjs
 FROM node:24-slim AS web
 
 WORKDIR /src
-COPY . .
-COPY --from=brush /src/web/pkg web/pkg
+COPY --from=brush /src .
+COPY patches/selfhost.patch /tmp/selfhost.patch
 
 # Self-host patch: same-origin model URLs + hide the share UI (needs CF Workers).
 RUN npm install -g pnpm@11 \
