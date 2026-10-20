@@ -36,13 +36,6 @@ docker run -p 8080:80 gausify-orbit
 | SAM 2.1 tiny fp32 (`models/sam2-fp32/`) | 4 | ~165 MB |
 | SAM 2.1 tiny fp16 (`models/sam2-fp16/`) | 4 | ~84 MB |
 
-## CI
-
-`.github/workflows/docker.yml` (modeled on
-[michael-mueller-git/anysplat-docker](https://github.com/michael-mueller-git/anysplat-docker))
-builds and pushes to `ghcr.io/<owner>/<repo>` on pushes to `main`, tags and
-`workflow_dispatch`, with GHA layer caching (the Brush build is the slow part).
-
 ## Notes
 
 - `patches/selfhost.patch` also removes the share button — share links are
