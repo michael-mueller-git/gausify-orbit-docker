@@ -1,0 +1,60 @@
+--- a/web/src/pipeline/segment.ts
++++ b/web/src/pipeline/segment.ts
+@@ -19,7 +19,7 @@
+   rmbg: {
+     label: "RMBG-1.4",
+     file: "rmbg14.onnx",
+-    url: "https://huggingface.co/briaai/RMBG-1.4/resolve/2ceba5a5efaec153162aedea169f76caf9b46cf8/onnx/model.onnx",
++    url: "models/rmbg14.onnx",
+     sha256: "8cafcf770b06757c4eaced21b1a88e57fd2b66de01b8045f35f01535ba742e0f",
+     bytes: 176_153_355,
+     license: "BRIA RMBG-1.4, non-commercial use",
+--- a/web/src/pipeline/sam2.ts
++++ b/web/src/pipeline/sam2.ts
+@@ -39,8 +39,8 @@
+   return parseParams(await res.arrayBuffer());
+ }
+ 
+-const FP32_REPO = "https://huggingface.co/jax-image-tools/sam21-tiny-video-onnx/resolve/3cb090d9d0b4c897281fdcac7765c0f3a888c49f";
+-const FP16_REPO = "https://huggingface.co/obraia/sam2.1-tiny-video-onnx-fp16/resolve/c6f0b87d6562f8926ff6619bbd70e1e7400e1569";
++const FP32_REPO = "models/sam2-fp32";
++const FP16_REPO = "models/sam2-fp16";
+ const file = (repo: string, prefix: string, name: string, sha256: string, bytes: number): ModelFile => ({
+   label: `SAM 2.1 (${name})`,
+   file: `${prefix}-${name}.onnx`,
+--- a/src/components/ExportPanel.tsx
++++ b/src/components/ExportPanel.tsx
+@@ -3,8 +3,6 @@
+ import { fmtBytes, fmtCount, fmtDuration } from "../lib/format";
+ import { basename, revealLabel } from "../lib/platform";
+ import { Field, NumField, Segmented, Select, Toggle } from "./fields";
+-import { SharePanel } from "./SharePanel";
+-import { savedShare, shareKey } from "../lib/share";
+ import type { BulkExport } from "../lib/batch";
+ import { useI18n } from "../i18n";
+ 
+@@ -53,9 +51,6 @@
+   const set = (patch: Partial<ExportOptions>) => setOpts((o) => ({ ...o, ...patch }));
+   const last = p.lastExport;
+   // Open by default if this export has a valid link created on this device.
+-  const lastKey = last ? shareKey(last.path, last.outputBytes) : null;
+-  const [sharing, setSharing] = useState(false);
+-  useEffect(() => setSharing(!!lastKey && !!savedShare(lastKey)), [lastKey]);
+ 
+   useEffect(() => {
+     try {
+@@ -322,14 +317,6 @@
+               {revealLabel(t)}
+             </button>
+           </div>
+-          {!last.mesh && (
+-            <button className={`btn-sm export-share ${sharing ? "on" : ""}`} onClick={() => setSharing((v) => !v)}>
+-              {t.share.button}
+-            </button>
+-          )}
+-          {sharing && !last.mesh && (
+-            <SharePanel path={last.path} bytes={last.outputBytes} frame={p.frame} onClose={() => setSharing(false)} />
+-          )}
+         </div>
+       )}
+     </section>
