@@ -1,0 +1,14 @@
+--- a/web/vite.config.ts
++++ b/web/vite.config.ts
+@@ -22,6 +22,11 @@ export default defineConfig({
+     outDir: "../dist-web",
+     emptyOutDir: true,
+     target: "es2022",
++    // Rolldown hoists Vite's modulepreload polyfill into a shared chunk that
++    // ONNX Runtime's pthread workers import; the polyfill's top-level
++    // `document` access throws there. Every WebGPU browser has native
++    // modulepreload, so the polyfill isn't needed.
++    modulePreload: { polyfill: false },
+     // Two pages: the app and the shared-link viewer, which the Worker serves
+     // at /s/<id> (worker/index.ts).
+     rolldownOptions: {

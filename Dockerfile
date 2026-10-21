@@ -34,18 +34,20 @@ FROM node:24-slim AS web
 
 WORKDIR /src
 COPY --from=brush /src .
-COPY patches/selfhost.patch /tmp/selfhost.patch
+COPY patches/ /tmp/patches/
 
 # node:24-slim ships neither patch nor git; only patch is needed to apply the
-# self-host patch. pnpm is pinned to packageManager in package.json.
+# patches. pnpm is pinned to packageManager in package.json.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends patch \
  && rm -rf /var/lib/apt/lists/*
 
 # Self-host patch: same-origin model URLs + hide the share UI (needs CF Workers).
+# Vite patch: keep the modulepreload polyfill out of ONNX Runtime's workers.
 RUN npm install -g pnpm@11.20.0 \
  && pnpm install --frozen-lockfile \
- && patch --batch -p1 < /tmp/selfhost.patch \
+ && patch --batch -p1 < /tmp/patches/vite-ort-worker.patch \
+ && patch --batch -p1 < /tmp/patches/selfhost.patch \
  && pnpm web:build
 
 # Bake the models next to the build output. Their SHA-256 is verified here

@@ -16,7 +16,8 @@ Build stages:
 1. **brush** — `rust:1.99-slim` + `wasm-pack`, clones gausify-orbit at the
    pinned `GAUSIFY_REV`, runs `scripts/build-brush-web.mjs`
    (clones Brush at its pinned rev, applies `web/brush/*.patch`, emits `web/pkg/`).
-2. **web** — `node:24-slim`, applies `patches/selfhost.patch`, runs `pnpm web:build`,
+2. **web** — `node:24-slim`, applies `patches/vite-ort-worker.patch` and
+   `patches/selfhost.patch`, runs `pnpm web:build`,
    then downloads the 9 ONNX models from `model-urls.txt` into `dist-web/models/`
    and verifies each SHA-256 (build fails on mismatch; the app re-verifies after download).
 3. **serve** — `nginx:1.27-alpine` with `nginx.conf`
