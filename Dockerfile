@@ -36,19 +36,28 @@ WORKDIR /src
 COPY --from=brush /src .
 COPY patches/selfhost.patch /tmp/selfhost.patch
 
+# node:24-slim ships neither patch nor git; only patch is needed to apply the
+# self-host patch. pnpm is pinned to packageManager in package.json.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends patch \
+ && rm -rf /var/lib/apt/lists/*
+
 # Self-host patch: same-origin model URLs + hide the share UI (needs CF Workers).
-RUN npm install -g pnpm@11 \
+RUN npm install -g pnpm@11.20.0 \
  && pnpm install --frozen-lockfile \
- && patch -p1 < patches/selfhost.patch \
+ && patch --batch -p1 < /tmp/selfhost.patch \
  && pnpm web:build
 
 # Bake the models next to the build output. Their SHA-256 is verified here
 # (build fails on mismatch) and again by the app after download.
 COPY model-urls.txt /tmp/model-urls.txt
-RUN apt-get update \
- && apt-get install -y --no-install-recommends curl ca-certificates \
- && rm -rf /var/lib/apt/lists/* \
- && while read -r dest url sha; do \
+RUN set -eu; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends curl ca-certificates; \
+    rm -rf /var/lib/apt/lists/*; \
+    while read -r dest url sha; do \
+      case "$dest" in ''|'#'*) continue ;; esac; \
+      mkdir -p "/src/dist-web/$(dirname "$dest")"; \
       echo "Fetching $dest"; \
       curl -fsSL --retry 5 --retry-delay 5 -o "/src/dist-web/$dest" "$url"; \
       echo "$sha  /src/dist-web/$dest" | sha256sum -c --quiet -; \
