@@ -13,7 +13,7 @@ FROM rust:1.99-slim AS brush
 # build-brush-web.mjs script and the web/brush/*.patch files all live there;
 # this wrapper repo only ships the Dockerfile, nginx.conf, the selfhost patch
 # and model-urls.txt. Pin the rev: patches/model checksums are verified against it.
-ARG GAUSIFY_REV=f019927d640b0f39c3687ccdee835ed459418538
+ARG GAUSIFY_REV=e6c99553ddc12bc1a37c0ee362ab5f489bb7a926
 
 # node is only needed to run scripts/build-brush-web.mjs (Node stdlib only).
 RUN apt-get update \
